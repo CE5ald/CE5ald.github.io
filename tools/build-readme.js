@@ -41,6 +41,11 @@ if (featured.length) {
   for (const p of featured) {
     const title = p.published && p.repo ? `[${p.name}](${p.repo})` : p.name;
     add(`### ${title}`);
+    // A picture sells a project faster than a paragraph does, so lead with it when there is one.
+    if (/^https:\/\//.test(p.readmeImage || '')) {
+      const alt = (p.images && p.images[0] && p.images[0].alt) || p.name;
+      add(p.published && p.repo ? `[![${alt}](${p.readmeImage})](${p.repo})` : `![${alt}](${p.readmeImage})`);
+    }
     add(p.summary);
     if (has(p.stack)) add(`Built with ${p.stack.join(', ')}.`);
   }

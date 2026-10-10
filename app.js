@@ -112,6 +112,87 @@ function credentials(d) {
     langs.length && h('div', { class: 'group' }, h('h3', {}, 'Languages'), chips(langs))));
 }
 
+/* ------------------------------------------------------------------ gallery */
+
+/** Images must live in assets/ and may not climb out of it. */
+const okImage = (src) => typeof src === 'string' && /^assets\/[\w./-]+$/.test(src) && !src.includes('..');
+
+let viewer = null;
+
+/**
+ * The enlarged view: one <dialog> for the whole page, reused by every gallery. A native dialog
+ * brings focus trapping, Escape to close and a backdrop for free, so only the arrows and the
+ * click-outside behaviour are written here.
+ */
+function openViewer(list, index) {
+  if (!viewer) {
+    const img = h('img', { class: 'lb-img', alt: '' });
+    const cap = h('p', { class: 'lb-cap' });
+    const count = h('span', { class: 'lb-count' });
+    const button = (cls, label, glyph, onClick) => {
+      const b = h('button', { class: `lb-btn ${cls}`, type: 'button', 'aria-label': label }, glyph);
+      b.addEventListener('click', onClick);
+      return b;
+    };
+    const dialog = h('dialog', { class: 'lightbox', 'aria-label': 'Screenshot viewer' });
+    const step = (d) => show((viewer.index + d + viewer.list.length) % viewer.list.length);
+    const show = (i) => {
+      viewer.index = i;
+      const it = viewer.list[i];
+      img.src = it.full || it.src;
+      img.alt = it.alt || '';
+      cap.textContent = it.caption || '';
+      count.textContent = `${i + 1} / ${viewer.list.length}`;
+    };
+    dialog.append(
+      button('close', 'Close', '\u00d7', () => dialog.close()),
+      button('prev', 'Previous screenshot', '\u2039', () => step(-1)),
+      button('next', 'Next screenshot', '\u203a', () => step(1)),
+      h('figure', {}, img, h('figcaption', {}, cap, count)));
+    // A click on the dim backdrop, outside the picture, closes it.
+    dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') step(-1);
+      else if (e.key === 'ArrowRight') step(1);
+    });
+    document.body.append(dialog);
+    viewer = { dialog, show, list: [], index: 0 };
+  }
+  viewer.list = list;
+  viewer.show(index);
+  if (!viewer.dialog.open) viewer.dialog.showModal();
+}
+
+/** A main picture, a strip of thumbnails to choose from, and a click-to-enlarge viewer. */
+function gallery(p) {
+  const list = (p.images || []).filter((i) => okImage(i.src));
+  if (!list.length) return null;
+
+  let current = 0;
+  const main = h('img', { class: 'shot', src: list[0].src, alt: list[0].alt || '', width: 1280, height: 750 });
+  const caption = h('figcaption', { class: 'shot-cap' }, list[0].caption || '');
+  const enlarge = h('button', { class: 'shot-btn', type: 'button', 'aria-label': 'Enlarge this screenshot' }, main);
+  enlarge.addEventListener('click', () => openViewer(list, current));
+
+  const thumbs = list.map((it, i) => {
+    const b = h('button', {
+      class: 'thumb', type: 'button', 'aria-pressed': String(i === 0),
+      'aria-label': it.caption || `Screenshot ${i + 1}`,
+    }, h('img', { src: okImage(it.thumb) ? it.thumb : it.src, alt: '', loading: 'lazy', width: 160, height: 94 }));
+    b.addEventListener('click', () => {
+      current = i;
+      main.src = it.src;
+      main.alt = it.alt || '';
+      caption.textContent = it.caption || '';
+      thumbs.forEach((t, j) => t.setAttribute('aria-pressed', String(j === i)));
+    });
+    return b;
+  });
+
+  return h('figure', { class: 'gallery' }, enlarge, caption,
+    list.length > 1 && h('div', { class: 'thumbs', role: 'group', 'aria-label': 'Choose a screenshot' }, thumbs));
+}
+
 /* ------------------------------------------------------------------ projects */
 
 function projectCard(p) {
@@ -120,8 +201,9 @@ function projectCard(p) {
   // Images must live in assets/. Anything else, including ../ paths, is ignored.
   const src = p.image && /^assets\/[\w.-]+$/.test(p.image) ? p.image : null;
 
+  const gal = gallery(p);
   return h('article', { class: p.featured ? 'card featured' : 'card', 'data-id': p.id },
-    src && h('img', { src, alt: p.imageAlt || '', loading: 'lazy', width: 1024, height: 576 }),
+    gal || (src && h('img', { src, alt: p.imageAlt || '', loading: 'lazy', width: 1024, height: 576 })),
     h('div', { class: 'body' },
       h('h3', {}, p.name, p.year && h('small', {}, p.year)),
       h('p', {}, p.summary),
