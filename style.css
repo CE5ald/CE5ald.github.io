@@ -1,0 +1,232 @@
+/* CV and project library.
+   Dark by default with the same teal-on-near-black palette as the projects it showcases,
+   a light scheme for visitors who ask for one, and a print sheet that turns the page into a
+   plain, dense CV. That sheet is what "Save as PDF" prints. */
+
+:root {
+  --bg: #05060A;
+  --surface: #0B0E17;
+  --surface-2: #121728;
+  --line: #222B42;
+  --text: #EAEEF7;
+  --dim: #9AA7BE;
+  --mute: #6A778E;
+  --accent: #2BE3D0;
+  --accent-ink: #042220;
+  --radius: 16px;
+  --max: 1040px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #F6F8FB;
+    --surface: #FFFFFF;
+    --surface-2: #EEF2F7;
+    --line: #D5DCE8;
+    --text: #0E1626;
+    --dim: #44506A;
+    --mute: #66738C;
+    --accent: #0B8F83;
+    --accent-ink: #FFFFFF;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+.skip {
+  position: absolute; left: 12px; top: -48px; z-index: 20;
+  padding: 8px 14px; border-radius: 8px; background: var(--accent); color: var(--accent-ink);
+}
+.skip:focus { top: 12px; text-decoration: none; }
+
+/* ------------------------------------------------------------------ header */
+
+.top {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 18px;
+  padding: 12px max(18px, calc((100% - var(--max)) / 2));
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.brand { font-weight: 700; letter-spacing: .2px; color: var(--text); min-width: 0; max-width: 32vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brand:hover { text-decoration: none; color: var(--accent); }
+
+#nav { display: flex; gap: 4px; margin-left: auto; overflow-x: auto; scrollbar-width: none; }
+#nav::-webkit-scrollbar { display: none; }
+#nav a {
+  padding: 6px 12px; border-radius: 999px; color: var(--dim);
+  font-size: 14px; font-weight: 600; white-space: nowrap;
+}
+#nav a:hover { color: var(--text); background: var(--surface-2); text-decoration: none; }
+#nav a[aria-current="true"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+
+.btn {
+  display: inline-block; white-space: nowrap;
+  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  padding: 7px 14px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text);
+}
+.btn:hover { border-color: var(--accent); text-decoration: none; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+/* -------------------------------------------------------------------- body */
+
+main { max-width: var(--max); margin: 0 auto; padding: 0 18px 40px; }
+
+section { padding: 44px 0 8px; }
+section > h2 {
+  margin: 0 0 20px; font-size: 13px; font-weight: 700;
+  letter-spacing: 1.6px; text-transform: uppercase; color: var(--mute);
+  display: flex; align-items: center; gap: 14px;
+}
+section > h2::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+.hero { padding: 72px 0 24px; }
+.hero h1 { margin: 0; font-size: clamp(34px, 6vw, 56px); line-height: 1.08; letter-spacing: -.5px; }
+.hero .headline { margin: 12px 0 0; max-width: 44ch; font-size: clamp(18px, 2.4vw, 22px); color: var(--dim); }
+.hero .where { margin: 10px 0 0; color: var(--mute); font-size: 15px; }
+.links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+
+.prose { max-width: 70ch; margin: 0; color: var(--dim); font-size: 17px; }
+
+/* ---------------------------------------------------------------- timeline */
+
+.entries { display: grid; gap: 22px; margin: 0; padding: 0; list-style: none; }
+.entry { display: grid; grid-template-columns: 170px 1fr; gap: 6px 28px; }
+.entry .when { color: var(--mute); font-size: 14px; padding-top: 3px; font-variant-numeric: tabular-nums; }
+.entry h3 { margin: 0; font-size: 18px; line-height: 1.35; }
+.entry .org { color: var(--dim); }
+.entry ul { margin: 8px 0 0; padding-left: 18px; color: var(--dim); }
+.entry li + li { margin-top: 4px; }
+
+.groups { display: grid; gap: 16px; }
+.group { display: grid; grid-template-columns: 170px 1fr; gap: 6px 28px; align-items: baseline; }
+.group h3 { margin: 0; font-size: 14px; color: var(--mute); font-weight: 600; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.chip {
+  padding: 3px 11px; border-radius: 999px; font-size: 13px; font-weight: 600;
+  color: var(--dim); background: var(--surface-2); border: 1px solid var(--line);
+}
+
+/* ---------------------------------------------------------------- projects */
+
+.tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 20px; }
+.search {
+  flex: 1 1 220px; max-width: 320px; font: inherit; font-size: 14px;
+  padding: 8px 14px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text);
+}
+.search::placeholder { color: var(--mute); }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.filter {
+  font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+  padding: 6px 13px; border-radius: 999px;
+  border: 1px solid var(--line); background: transparent; color: var(--dim);
+}
+.filter:hover { color: var(--text); border-color: var(--mute); }
+.filter[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); gap: 20px; }
+
+.card {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  transition: border-color .18s, transform .18s;
+}
+.card:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
+@media (prefers-reduced-motion: no-preference) { .card:hover { transform: translateY(-2px); } }
+
+.card img {
+  display: block; width: 100%; height: auto;   /* height:auto beats the width/height attributes, which are there only to reserve space */
+  aspect-ratio: 16 / 9; object-fit: cover; object-position: top;
+  border-bottom: 1px solid var(--line); background: var(--surface-2);
+}
+.card .body { display: flex; flex-direction: column; gap: 12px; padding: 20px 22px 22px; flex: 1; }
+.card h3 { margin: 0; font-size: 21px; line-height: 1.25; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.card h3 small { font-size: 13px; font-weight: 600; color: var(--mute); }
+.card p { margin: 0; color: var(--dim); }
+
+.card details { color: var(--dim); }
+.card summary { cursor: pointer; color: var(--accent); font-size: 14px; font-weight: 600; list-style: none; }
+.card summary::-webkit-details-marker { display: none; }
+.card summary::before { content: "+ "; }
+.card details[open] summary::before { content: "- "; }
+.card details ul { margin: 10px 0 0; padding-left: 18px; }
+.card details li + li { margin-top: 6px; }
+
+.card .stack { margin-top: auto; }
+.card .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.empty { color: var(--mute); padding: 24px 0; }
+
+/* ----------------------------------------------------------------- footer */
+
+.foot {
+  max-width: var(--max); margin: 40px auto 0; padding: 22px 18px 44px;
+  border-top: 1px solid var(--line); color: var(--mute); font-size: 14px;
+}
+
+.note { color: var(--dim); }
+
+/* A featured project takes the whole row, picture beside text, so the best work reads as the
+   headline of the library rather than one card among equals. */
+@media (min-width: 860px) {
+  .card.featured { grid-column: 1 / -1; flex-direction: row; }
+  .card.featured img { width: 52%; height: auto; align-self: flex-start; position: sticky; top: 76px; aspect-ratio: 800 / 469; object-fit: contain; border-bottom: 0; border-right: 1px solid var(--line); }
+  .card.featured .body { padding: 30px 32px; justify-content: center; }
+  .card.featured h3 { font-size: 26px; }
+}
+
+@media (max-width: 680px) {
+  .entry, .group { grid-template-columns: 1fr; gap: 4px; }
+  .top { gap: 10px; }
+  #print { display: none; }
+  .hero { padding-top: 48px; }
+}
+
+/* ------------------------------------------------------------------- print */
+
+@media print {
+  :root { --bg: #fff; --surface: #fff; --surface-2: #f1f3f6; --line: #cfd5df; --text: #111; --dim: #333; --mute: #555; --accent: #0a5d55; }
+  @page { margin: 14mm; }
+  html { font-size: 11px; scroll-behavior: auto; }
+  body { background: #fff; font-size: 11px; line-height: 1.45; }
+  /* The header block already lists every contact link on paper, so the Contact section would
+     only repeat them. */
+  .skip, .top, .tools, #print, .card summary, .card img, #contact { display: none !important; }
+
+  /* Links become plain text with their address spelled out, because paper cannot be clicked. */
+  .links { gap: 2px 18px; margin-top: 8px; }
+  .btn, .btn.primary { padding: 0; border: 0; background: none; color: inherit; font-weight: 600; }
+  .btn::after { content: " " attr(data-print); font-weight: 400; color: var(--mute); overflow-wrap: anywhere; }
+  main { max-width: none; padding: 0; }
+  section { padding: 14px 0 0; }
+  section > h2 { margin-bottom: 8px; }
+  .hero { padding: 0 0 6px; }
+  .hero h1 { font-size: 26px; }
+  .hero .headline { font-size: 14px; }
+  .entry, .group { grid-template-columns: 120px 1fr; gap: 2px 14px; }
+  .entry, .card { break-inside: avoid; }
+  .grid { grid-template-columns: 1fr; gap: 10px; }
+  .card { border-radius: 6px; flex-direction: row; }
+  .card img { width: 150px; aspect-ratio: 4 / 3; border-bottom: 0; border-right: 1px solid var(--line); }
+  .card .body { padding: 10px 12px; gap: 6px; }
+  .card h3 { font-size: 14px; }
+  a { color: inherit; }
+  .foot { border: 0; margin: 10px 0 0; padding: 0; }
+}

@@ -1,0 +1,43 @@
+{
+  "handle": "CE5ald",
+  "name": "",
+  "headline": "",
+  "location": "",
+  "summary": "",
+  "updated": "2026-10",
+  "contact": {
+    "email": "",
+    "linkedin": "",
+    "website": "",
+    "other": []
+  },
+  "education": [],
+  "experience": [],
+  "skills": [],
+  "certifications": [],
+  "languages": [],
+  "projects": [
+    {
+      "id": "companion-deck",
+      "name": "Companion Deck",
+      "year": "2026",
+      "featured": true,
+      "summary": "Turns an old Android tablet into a touch control surface for a Windows PC: now-playing with artwork, a per-app volume mixer, live CPU/GPU/RAM gauges, a game and app launcher, and a soundboard that can play into a voice call.",
+      "details": [
+        "A thin Kotlin shell hosts a web UI in a WebView, so the whole dashboard can be designed in a desktop browser. It runs on Android 5 and newer, down to a 1 GB tablet.",
+        "A .NET 8 agent on the PC talks to it over a custom length-prefixed protocol. The link rides the USB cable through an adb forward, with a UDP-beacon network fallback.",
+        "Every hardware feature is probed at startup and advertised as a capability, so a control only appears when it can actually work. Nothing unsupported is drawn.",
+        "The agent collects only what the tablet is currently showing, and goes completely idle when the screen is off.",
+        "Audio is built on WASAPI: per-application mixing, output and input switching, loudness-normalised soundboard clips, and desktop-audio casting into the microphone through a virtual cable.",
+        "Verified on real hardware with a synthetic-tablet protocol suite (34 checks) and DevTools-driven tests on the device itself."
+      ],
+      "tags": ["Android", "Windows", "Audio", "Systems", "Open source"],
+      "stack": ["Kotlin", "C# / .NET 8", "JavaScript", "WebView", "WASAPI", "NAudio", "adb"],
+      "repo": "https://github.com/CE5ald/companion-deck",
+      "published": true,
+      "demo": "",
+      "image": "assets/companion-deck.jpg",
+      "imageAlt": "The Companion Deck dashboard on a 1024 by 600 tablet: now playing, system gauges and the audio mixer."
+    }
+  ]
+}
