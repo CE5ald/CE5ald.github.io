@@ -29,7 +29,8 @@
         "Every hardware feature is probed at startup and advertised as a capability, so a control only appears when it can actually work. Nothing unsupported is drawn.",
         "The agent collects only what the tablet is currently showing, and goes completely idle when the screen is off.",
         "Audio is built on WASAPI: per-application mixing, output and input switching, loudness-normalised soundboard clips, and desktop-audio casting into the microphone through a virtual cable.",
-        "Verified on real hardware with a synthetic-tablet protocol suite (34 checks) and DevTools-driven tests on the device itself."
+        "Verified on real hardware with a synthetic-tablet protocol suite (34 checks) and DevTools-driven tests on the device itself.",
+        "Built with the help of Claude, an AI assistant from Anthropic, under my direction; I tested it on real hardware."
       ],
       "tags": [
         "Android",
