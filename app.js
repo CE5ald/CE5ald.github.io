@@ -1,16 +1,13 @@
-/* Builds the whole page from data/cv.json.
+/* Draws the whole profile from data/profile.json.
  *
- * One file holds every fact, and a section with no data simply does not exist: no heading,
- * no nav link, no placeholder. That makes it impossible to publish an empty "Experience"
- * heading or a visible TODO, and it means editing the CV never touches this file.
- *
- * Everything is written with textContent and checked links, never innerHTML, so nothing in
- * the data can become markup. */
+ * Everything is written with textContent and checked links, never innerHTML, so nothing in the
+ * data can become markup. An area with no projects says so plainly instead of being hidden, because
+ * the three areas are the shape of the page. */
 'use strict';
 
 const $ = (s, r = document) => r.querySelector(s);
+const NS = 'http://www.w3.org/2000/svg';
 
-/** Element builder. Children may be nodes, strings, arrays, or null/false to skip. */
 function h(tag, props, ...kids) {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(props || {})) {
@@ -26,315 +23,155 @@ function h(tag, props, ...kids) {
   return e;
 }
 
-/** Only https and mailto links are ever rendered. */
-function safeUrl(u) {
-  if (!u) return null;
-  try {
-    const x = new URL(u);
-    return x.protocol === 'https:' || x.protocol === 'mailto:' ? x.href : null;
-  } catch { return null; }
+function svg(tag, attrs, ...kids) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs || {})) e.setAttribute(k, v);
+  for (const kid of kids) e.append(kid);
+  return e;
 }
 
-const filled = (v) => (Array.isArray(v) ? v.length > 0 : !!v);
-const range = (a, b) => [a, b || (a ? 'Present' : '')].filter(Boolean).join(' to ');
+/** Only https links are ever rendered. */
+function safeUrl(u) {
+  try { const x = new URL(u); return x.protocol === 'https:' ? x.href : null; } catch { return null; }
+}
 
 function link(label, url, cls) {
   const href = safeUrl(url);
-  // data-print is the address as it should read on paper, where a button has no meaning and a
-  // bare "LinkedIn" tells the reader nothing they can type.
-  return href ? h('a', {
-    class: cls, href, rel: 'noopener', 'data-print': href.replace(/^mailto:|^https:\/\//, ''),
-    target: href.startsWith('mailto:') ? null : '_blank',
-  }, label) : null;
+  return href ? h('a', { class: cls, href, rel: 'noopener', target: '_blank' }, label) : null;
 }
 
-function chips(items) {
-  return filled(items) ? h('ul', { class: 'chips' }, items.map((t) => h('li', { class: 'chip' }, t))) : null;
+/* One drawing per area, in the line style the page uses everywhere. */
+const ICONS = {
+  telecom: () => svg('svg', { viewBox: '0 0 48 48', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' },
+    svg('path', { d: 'M24 22v20M17 42h14' }), svg('circle', { cx: 24, cy: 17, r: 3 }),
+    svg('path', { d: 'M15 10a13 13 0 0 0 0 14M33 10a13 13 0 0 1 0 14M9.5 5.5a21 21 0 0 0 0 23M38.5 5.5a21 21 0 0 1 0 23' })),
+  networks: () => svg('svg', { viewBox: '0 0 48 48', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' },
+    svg('circle', { cx: 24, cy: 10, r: 5 }), svg('circle', { cx: 9, cy: 36, r: 5 }), svg('circle', { cx: 39, cy: 36, r: 5 }),
+    svg('path', { d: 'M21.5 14.5 11.5 31.5M26.5 14.5l10 17M14 36h20' })),
+  ai: () => svg('svg', { viewBox: '0 0 48 48', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' },
+    svg('circle', { cx: 8, cy: 14, r: 3.5 }), svg('circle', { cx: 8, cy: 34, r: 3.5 }),
+    svg('circle', { cx: 24, cy: 8, r: 3.5 }), svg('circle', { cx: 24, cy: 24, r: 3.5 }), svg('circle', { cx: 24, cy: 40, r: 3.5 }),
+    svg('circle', { cx: 40, cy: 24, r: 3.5 }),
+    svg('path', { d: 'M11 14l10-5M11 14l10 9M11 34l10-9M11 34l10 5M27 9l10 13M27 24h10M27 39l10-13' })),
+};
+
+/* ------------------------------------------------------------------ pieces */
+
+function hero(d) {
+  const wave = (cls, amp, y, len) => {
+    // A sine drawn twice as wide as the screen, so sliding it by half its width loops without a seam.
+    let p = `M0 ${y}`;
+    for (let x = 0; x <= len * 2; x += 20) p += ` L${x} ${(y + Math.sin((x / len) * Math.PI * 4) * amp).toFixed(1)}`;
+    return svg('path', { class: cls, d: p });
+  };
+  return h('section', { class: 'hero', 'aria-label': 'Introduction' },
+    h('div', { class: 'glow a' }), h('div', { class: 'glow b' }),
+    svg('svg', { class: 'waves', viewBox: '0 0 1200 600', preserveAspectRatio: 'none', 'aria-hidden': 'true' },
+      wave('w1', 46, 250, 1200), wave('w2', 30, 330, 900), wave('w3', 60, 410, 1500)),
+    h('div', { class: 'inner' },
+      h('p', { class: 'kicker' }, 'Profile'),
+      h('h1', {}, d.handle),
+      h('p', { class: 'title' }, d.title),
+      h('div', { class: 'links' },
+        link('GitHub', `https://github.com/${d.handle}`, 'btn primary'),
+        d.areas.some((a) => a.projects.length) && h('a', { class: 'btn', href: '#areas' }, 'Projects ↓'))));
+}
+
+function picker(d) {
+  return h('nav', { class: 'areas', id: 'areas', 'aria-label': 'Project areas' }, d.areas.map((a) =>
+    h('a', { class: 'area-card', 'data-area': a.id, href: `#${a.id}` },
+      ICONS[a.id] && ICONS[a.id](),
+      h('span', { class: 'count' }, a.projects.length ? `${a.projects.length} project${a.projects.length > 1 ? 's' : ''}` : 'soon'),
+      h('h2', {}, a.name),
+      h('p', {}, a.blurb))));
+}
+
+function chips(items, cls) {
+  return items && items.length ? h('ul', { class: 'chips' }, items.map((t) => h('li', { class: `chip ${cls || ''}` }, t))) : null;
+}
+
+/* ----------------------------------------------------------------- lightbox */
+
+let shots = [], at = 0, box;
+
+function showShot(i) {
+  at = (i + shots.length) % shots.length;
+  const s = shots[at];
+  $('img', box).src = s.full || s.src;
+  $('img', box).alt = s.alt || s.caption || '';
+  $('figcaption', box).textContent = s.caption || '';
+}
+
+function openShots(list, i) {
+  shots = list;
+  if (!box) {
+    box = h('dialog', { 'aria-label': 'Screenshot viewer' },
+      h('figure', {}, h('img', { alt: '' }), h('figcaption', {}),
+        h('div', { class: 'nav' },
+          h('button', { type: 'button', 'data-go': '-1' }, '← Previous'),
+          h('button', { type: 'button', 'data-go': '1' }, 'Next →'),
+          h('button', { type: 'button', 'data-go': 'x' }, 'Close'))));
+    box.addEventListener('click', (e) => {
+      const go = e.target.dataset && e.target.dataset.go;
+      if (go === 'x' || e.target === box) box.close();
+      else if (go) showShot(at + Number(go));
+    });
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') showShot(at - 1);
+      if (e.key === 'ArrowRight') showShot(at + 1);
+    });
+    document.body.append(box);
+  }
+  showShot(i);
+  box.showModal();
+}
+
+function gallery(images) {
+  if (!images || !images.length) return null;
+  return h('div', { class: 'gallery' }, images.map((im, i) =>
+    h('button', { class: 'shot', type: 'button', 'aria-label': `Open: ${im.caption || im.alt || 'screenshot'}`, onclick: null },
+      h('img', { src: im.thumb || im.src, alt: im.alt || '', loading: 'lazy', width: 320, height: 200 }),
+      h('span', {}, im.caption))));
 }
 
 /* ------------------------------------------------------------------ sections */
 
-function hero(d) {
-  const c = d.contact || {};
-  const github = `https://github.com/${d.handle}`;
-  return h('section', { class: 'hero', id: 'about-me', 'aria-label': 'Introduction' },
-    h('h1', {}, d.name || d.handle),
-    d.headline && h('p', { class: 'headline' }, d.headline),
-    d.location && h('p', { class: 'where' }, d.location),
+function project(p) {
+  const card = h('article', { class: 'project', id: p.id },
+    h('header', {}, h('h3', {}, p.name), p.year && h('span', { class: 'year' }, p.year)),
+    h('p', { class: 'summary' }, p.summary),
+    p.details && p.details.length ? h('ul', { class: 'details' }, p.details.map((t) => h('li', {}, t))) : null,
+    chips([...(p.tags || [])]),
+    chips(p.stack, 'stack'),
+    gallery(p.images),
     h('div', { class: 'links' },
-      link('GitHub', github, 'btn primary'),
-      link('Email', c.email && `mailto:${c.email}`, 'btn'),
-      link('LinkedIn', c.linkedin, 'btn'),
-      link('Website', c.website, 'btn'),
-      (c.other || []).map((o) => link(o.label, o.url, 'btn'))));
+      link('View on GitHub', p.repo, 'btn primary'),
+      link('Download', p.download, 'btn'),
+      link('Live demo', p.demo, 'btn')));
+
+  // The thumbnails open the viewer; wired here so the data can stay plain.
+  [...card.querySelectorAll('.shot')].forEach((b, i) => b.addEventListener('click', () => openShots(p.images, i)));
+  return card;
 }
 
-function about(d) {
-  return filled(d.summary) && section('about', 'About', h('p', { class: 'prose' }, d.summary));
+function area(a) {
+  return h('section', { class: 'area', id: a.id, 'data-area': a.id, 'aria-labelledby': `${a.id}-h` },
+    h('div', { class: 'area-head' }, ICONS[a.id] && ICONS[a.id](), h('h2', { id: `${a.id}-h` }, a.name)),
+    h('p', { class: 'blurb' }, a.blurb),
+    a.projects.length
+      ? a.projects.map(project)
+      : h('div', { class: 'soon' }, h('strong', {}, 'Projects coming soon'), `${a.name} work will appear here.`));
 }
 
-function entries(list, build) {
-  return h('ol', { class: 'entries' }, list.map(build));
+function build(d) {
+  document.title = `${d.handle} · ${d.title}`;
+  const main = $('#main');
+  main.replaceChildren(hero(d), picker(d), ...d.areas.map(area));
+  $('#foot').replaceChildren(h('span', {}, `${d.handle} · ${d.title}`),
+    h('a', { href: `https://github.com/${d.handle}`, rel: 'noopener' }, 'github.com/' + d.handle));
 }
 
-function experience(d) {
-  return filled(d.experience) && section('experience', 'Experience', entries(d.experience, (x) =>
-    h('li', { class: 'entry' },
-      h('div', { class: 'when' }, range(x.start, x.end)),
-      h('div', {},
-        h('h3', {}, x.role, x.org && h('span', { class: 'org' }, ` at ${x.org}`)),
-        x.location && h('div', { class: 'org' }, x.location),
-        filled(x.bullets) && h('ul', {}, x.bullets.map((b) => h('li', {}, b)))))));
-}
-
-function education(d) {
-  return filled(d.education) && section('education', 'Education', entries(d.education, (x) =>
-    h('li', { class: 'entry' },
-      h('div', { class: 'when' }, range(x.start, x.end)),
-      h('div', {},
-        h('h3', {}, [x.degree, x.field].filter(Boolean).join(', ') || x.school),
-        (x.degree || x.field) && x.school && h('div', { class: 'org' }, x.school),
-        x.details && h('div', { class: 'org' }, x.details)))));
-}
-
-function skills(d) {
-  return filled(d.skills) && section('skills', 'Skills', h('div', { class: 'groups' }, d.skills.map((g) =>
-    h('div', { class: 'group' }, h('h3', {}, g.group), chips(g.items)))));
-}
-
-function credentials(d) {
-  const certs = (d.certifications || []).map((c) =>
-    [c.name, c.issuer, c.status, c.date].filter(Boolean).join(', '));
-  const langs = (d.languages || []).map((l) => (l.level ? `${l.name} (${l.level})` : l.name));
-  if (!certs.length && !langs.length) return false;
-  return section('credentials', 'Credentials', h('div', { class: 'groups' },
-    certs.length && h('div', { class: 'group' }, h('h3', {}, 'Certifications'), chips(certs)),
-    langs.length && h('div', { class: 'group' }, h('h3', {}, 'Languages'), chips(langs))));
-}
-
-/* ------------------------------------------------------------------ gallery */
-
-/** Images must live in assets/ and may not climb out of it. */
-const okImage = (src) => typeof src === 'string' && /^assets\/[\w./-]+$/.test(src) && !src.includes('..');
-
-let viewer = null;
-
-/**
- * The enlarged view: one <dialog> for the whole page, reused by every gallery. A native dialog
- * brings focus trapping, Escape to close and a backdrop for free, so only the arrows and the
- * click-outside behaviour are written here.
- */
-function openViewer(list, index) {
-  if (!viewer) {
-    const img = h('img', { class: 'lb-img', alt: '' });
-    const cap = h('p', { class: 'lb-cap' });
-    const count = h('span', { class: 'lb-count' });
-    const button = (cls, label, glyph, onClick) => {
-      const b = h('button', { class: `lb-btn ${cls}`, type: 'button', 'aria-label': label }, glyph);
-      b.addEventListener('click', onClick);
-      return b;
-    };
-    const dialog = h('dialog', { class: 'lightbox', 'aria-label': 'Screenshot viewer' });
-    const step = (d) => show((viewer.index + d + viewer.list.length) % viewer.list.length);
-    const show = (i) => {
-      viewer.index = i;
-      const it = viewer.list[i];
-      img.src = it.full || it.src;
-      img.alt = it.alt || '';
-      cap.textContent = it.caption || '';
-      count.textContent = `${i + 1} / ${viewer.list.length}`;
-    };
-    dialog.append(
-      button('close', 'Close', '\u00d7', () => dialog.close()),
-      button('prev', 'Previous screenshot', '\u2039', () => step(-1)),
-      button('next', 'Next screenshot', '\u203a', () => step(1)),
-      h('figure', {}, img, h('figcaption', {}, cap, count)));
-    // A click on the dim backdrop, outside the picture, closes it.
-    dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
-    dialog.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft') step(-1);
-      else if (e.key === 'ArrowRight') step(1);
-    });
-    document.body.append(dialog);
-    viewer = { dialog, show, list: [], index: 0 };
-  }
-  viewer.list = list;
-  viewer.show(index);
-  if (!viewer.dialog.open) viewer.dialog.showModal();
-}
-
-/** A main picture, a strip of thumbnails to choose from, and a click-to-enlarge viewer. */
-function gallery(p) {
-  const list = (p.images || []).filter((i) => okImage(i.src));
-  if (!list.length) return null;
-
-  let current = 0;
-  const main = h('img', { class: 'shot', src: list[0].src, alt: list[0].alt || '', width: 1280, height: 750 });
-  const caption = h('figcaption', { class: 'shot-cap' }, list[0].caption || '');
-  const enlarge = h('button', { class: 'shot-btn', type: 'button', 'aria-label': 'Enlarge this screenshot' }, main);
-  enlarge.addEventListener('click', () => openViewer(list, current));
-
-  const thumbs = list.map((it, i) => {
-    const b = h('button', {
-      class: 'thumb', type: 'button', 'aria-pressed': String(i === 0),
-      'aria-label': it.caption || `Screenshot ${i + 1}`,
-    }, h('img', { src: okImage(it.thumb) ? it.thumb : it.src, alt: '', loading: 'lazy', width: 160, height: 94 }));
-    b.addEventListener('click', () => {
-      current = i;
-      main.src = it.src;
-      main.alt = it.alt || '';
-      caption.textContent = it.caption || '';
-      thumbs.forEach((t, j) => t.setAttribute('aria-pressed', String(j === i)));
-    });
-    return b;
-  });
-
-  return h('figure', { class: 'gallery' }, enlarge, caption,
-    list.length > 1 && h('div', { class: 'thumbs', role: 'group', 'aria-label': 'Choose a screenshot' }, thumbs));
-}
-
-/* ------------------------------------------------------------------ projects */
-
-function projectCard(p) {
-  const repo = p.published ? link('Repository', p.repo, 'btn primary') : null;
-  const demo = link('Live demo', p.demo, 'btn');
-  // Images must live in assets/. Anything else, including ../ paths, is ignored.
-  const src = p.image && /^assets\/[\w.-]+$/.test(p.image) ? p.image : null;
-
-  const gal = gallery(p);
-  return h('article', { class: p.featured ? 'card featured' : 'card', 'data-id': p.id },
-    gal || (src && h('img', { src, alt: p.imageAlt || '', loading: 'lazy', width: 1024, height: 576 })),
-    h('div', { class: 'body' },
-      h('h3', {}, p.name, p.year && h('small', {}, p.year)),
-      h('p', {}, p.summary),
-      filled(p.details) && h('details', {}, h('summary', {}, 'How it works'),
-        h('ul', {}, p.details.map((t) => h('li', {}, t)))),
-      h('div', { class: 'stack' }, chips(p.stack)),
-      (repo || demo) && h('div', { class: 'actions' }, repo, demo)));
-}
-
-function projects(d) {
-  const all = d.projects || [];
-  if (!all.length) return false;
-
-  // Featured work first, then newest, so the top of the library is the best of it.
-  const sorted = [...all].sort((a, b) =>
-    Number(!!b.featured) - Number(!!a.featured) || String(b.year).localeCompare(String(a.year)));
-
-  const tags = [...new Set(all.flatMap((p) => p.tags || []))].sort();
-  const state = { tag: null, q: '' };
-  const grid = h('div', { class: 'grid', id: 'grid' });
-  const none = h('p', { class: 'empty', hidden: true }, 'No projects match that.');
-
-  const matches = (p) => {
-    if (state.tag && !(p.tags || []).includes(state.tag)) return false;
-    if (!state.q) return true;
-    const hay = [p.name, p.summary, ...(p.tags || []), ...(p.stack || [])].join(' ').toLowerCase();
-    return hay.includes(state.q);
-  };
-
-  const draw = () => {
-    const shown = sorted.filter(matches);
-    grid.replaceChildren(...shown.map(projectCard));
-    none.hidden = shown.length > 0;
-  };
-
-  // Filters only earn their space once there is something to filter.
-  const tools = all.length > 2 && h('div', { class: 'tools' },
-    h('input', {
-      class: 'search', type: 'search', placeholder: 'Search projects', 'aria-label': 'Search projects',
-    }),
-    tags.length > 1 && h('div', { class: 'filters', role: 'group', 'aria-label': 'Filter by topic' },
-      tags.map((t) => h('button', { class: 'filter', type: 'button', 'aria-pressed': 'false', 'data-tag': t }, t))));
-
-  const node = section('projects', 'Projects', tools, grid, none);
-
-  if (tools) {
-    $('.search', node).addEventListener('input', (e) => { state.q = e.target.value.trim().toLowerCase(); draw(); });
-    $('.filters', node)?.addEventListener('click', (e) => {
-      const b = e.target.closest('.filter');
-      if (!b) return;
-      state.tag = state.tag === b.dataset.tag ? null : b.dataset.tag;
-      node.querySelectorAll('.filter').forEach((x) => x.setAttribute('aria-pressed', String(x === b && !!state.tag)));
-      draw();
-    });
-  }
-
-  draw();
-  return node;
-}
-
-function contact(d) {
-  const c = d.contact || {};
-  const items = [
-    link(c.email, c.email && `mailto:${c.email}`),
-    link('LinkedIn', c.linkedin),
-    link('Website', c.website),
-    ...(c.other || []).map((o) => link(o.label, o.url)),
-  ].filter(Boolean);
-  if (!items.length) return false;
-  return section('contact', 'Contact', h('div', { class: 'links' }, items.map((a) => { a.classList.add('btn'); return a; })));
-}
-
-/* ---------------------------------------------------------------------- page */
-
-function section(id, title, ...body) {
-  return h('section', { id, 'aria-labelledby': `${id}-h` }, h('h2', { id: `${id}-h` }, title), body);
-}
-
-function nav(sections) {
-  const nav = $('#nav');
-  nav.replaceChildren(...sections
-    .filter((s) => s.id && s.querySelector('h2'))
-    .map((s) => h('a', { href: `#${s.id}` }, $('h2', s).textContent)));
-
-  // Mark the section being read, so the bar answers "where am I" without a click.
-  if (!('IntersectionObserver' in window)) return;
-  const links = new Map([...nav.children].map((a) => [a.getAttribute('href').slice(1), a]));
-  const io = new IntersectionObserver((hits) => {
-    for (const hit of hits) {
-      if (!hit.isIntersecting) continue;
-      links.forEach((a, id) => {
-        if (id === hit.target.id) a.setAttribute('aria-current', 'true');
-        else a.removeAttribute('aria-current');
-      });
-    }
-  }, { rootMargin: '-45% 0px -50% 0px' });
-  sections.forEach((s) => s.id && links.has(s.id) && io.observe(s));
-}
-
-async function main() {
-  let d;
-  try {
-    // ?data=data/other.json previews an alternative file. Only a plain file inside data/ is
-    // accepted, so a crafted link cannot make this page render someone else's content.
-    const asked = new URLSearchParams(location.search).get('data');
-    const file = asked && /^data\/[\w.-]+\.json$/.test(asked) ? asked : 'data/cv.json';
-    const res = await fetch(file, { cache: 'no-cache' });
-    if (!res.ok) throw new Error(res.status);
-    d = await res.json();
-  } catch (e) {
-    $('#main').replaceChildren(h('p', { class: 'note' },
-      'Could not load data/cv.json. If this is a local copy, serve the folder over http instead of opening the file directly.'));
-    return;
-  }
-
-  const who = d.name || d.handle;
-  document.title = d.headline ? `${who} - ${d.headline}` : who;
-  $('meta[name="description"]').content = d.headline || 'CV and project library.';
-  $('meta[property="og:title"]').content = who;
-  $('#brand').textContent = who;
-
-  const built = [hero(d), about(d), experience(d), education(d), skills(d), projects(d), credentials(d), contact(d)]
-    .filter(Boolean);
-  $('#main').replaceChildren(...built);
-  nav(built);
-
-  $('#foot').textContent = d.updated ? `Updated ${d.updated}.` : '';
-  $('#print').addEventListener('click', () => window.print());
-
-  // A closed <details> prints as closed, so open them all while the print sheet is built.
-  window.addEventListener('beforeprint', () => document.querySelectorAll('details').forEach((x) => { x.open = true; }));
-}
-
-main();
+const dataFile = new URLSearchParams(location.search).get('data') || 'data/profile.json';
+fetch(dataFile).then((r) => r.json()).then(build).catch(() => {
+  $('#main').replaceChildren(h('p', { class: 'note' }, 'Could not load the profile data.'));
+});

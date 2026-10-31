@@ -1,74 +1,47 @@
-// Generates the GitHub profile README from data/cv.json, so the profile front page and the
-// CV site are always saying the same thing. Run it after editing the data:
+// Generates the GitHub profile README from data/profile.json, so the profile front page and the
+// site always say the same thing. Run it after editing the data:
 //
 //   node tools/build-readme.js
 //
 // It writes ../CE5ald/README.md (the special <username>/<username> profile repository).
-// Like the site, a section with no data is left out entirely.
 
 const fs = require('fs');
 const path = require('path');
 
-const data = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'cv.json'), 'utf8'));
+const data = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'profile.json'), 'utf8'));
 const out = path.join(__dirname, '..', '..', data.handle, 'README.md');
-
-const has = (v) => (Array.isArray(v) ? v.length > 0 : !!v);
-const range = (a, b) => [a, b || (a ? 'Present' : '')].filter(Boolean).join(' to ');
 const site = `https://${data.handle.toLowerCase()}.github.io`;
-const c = data.contact || {};
 
+const GLYPH = { telecom: '📡', networks: '🕸️', ai: '🧠' };
 const md = [];
 const add = (...lines) => md.push(...lines, '');
 
-add(`# ${data.name || data.handle}`);
-if (data.headline) add(`**${data.headline}**`);
-if (data.location) add(data.location);
+add(`# ${data.handle}`);
+add(`### ${data.title}`);
+add(`[Profile site](${site}) · [GitHub](https://github.com/${data.handle})`);
 
-const links = [
-  [`CV and projects`, site],
-  [`LinkedIn`, c.linkedin],
-  [`Website`, c.website],
-  [`Email`, c.email && `mailto:${c.email}`],
-  ...(c.other || []).map((o) => [o.label, o.url]),
-].filter(([, u]) => u).map(([l, u]) => `[${l}](${u})`);
-add(links.join(' | '));
+// The three areas as a table, so the shape of the profile is visible before anything is opened.
+add('| ' + data.areas.map((a) => `${GLYPH[a.id] || ''} ${a.name}`).join(' | ') + ' |',
+    '|' + data.areas.map(() => ' --- ').join('|') + '|',
+    '| ' + data.areas.map((a) => a.blurb).join(' | ') + ' |');
 
-if (data.summary) add('## About', data.summary);
-
-const featured = (data.projects || []).filter((p) => p.featured);
-if (featured.length) {
-  add('## Featured projects');
-  for (const p of featured) {
-    const title = p.published && p.repo ? `[${p.name}](${p.repo})` : p.name;
-    add(`### ${title}`);
-    // A picture sells a project faster than a paragraph does, so lead with it when there is one.
+for (const a of data.areas) {
+  add(`## ${GLYPH[a.id] || ''} ${a.name}`.trim());
+  if (!a.projects.length) { add('*Projects coming soon.*'); continue; }
+  for (const p of a.projects) {
+    add(`### [${p.name}](${p.repo})`);
     if (/^https:\/\//.test(p.readmeImage || '')) {
       const alt = (p.images && p.images[0] && p.images[0].alt) || p.name;
-      add(p.published && p.repo ? `[![${alt}](${p.readmeImage})](${p.repo})` : `![${alt}](${p.readmeImage})`);
+      add(`[![${alt}](${p.readmeImage})](${p.repo})`);
     }
     add(p.summary);
-    if (has(p.stack)) add(`Built with ${p.stack.join(', ')}.`);
+    if (p.stack && p.stack.length) add(`Built with ${p.stack.join(', ')}.`);
+    const links = [[`Source`, p.repo], [`Download`, p.download], [`More`, `${site}/#${a.id}`]]
+      .filter(([, u]) => u).map(([l, u]) => `[${l}](${u})`);
+    add(links.join(' · '));
   }
-  add(`The full list, with details, is on the [CV site](${site}/#projects).`);
 }
-
-if (has(data.skills)) {
-  add('## Skills', ...data.skills.map((g) => `- **${g.group}:** ${g.items.join(', ')}`));
-}
-
-if (has(data.experience)) {
-  add('## Experience', ...data.experience.map((x) =>
-    `- **${x.role}**${x.org ? `, ${x.org}` : ''} (${range(x.start, x.end)})`));
-}
-
-if (has(data.education)) {
-  add('## Education', ...data.education.map((x) =>
-    `- **${[x.degree, x.field].filter(Boolean).join(', ') || x.school}**${(x.degree || x.field) && x.school ? `, ${x.school}` : ''} (${range(x.start, x.end)})`));
-}
-
-const certs = (data.certifications || []).map((x) => `- ${[x.name, x.issuer, x.status, x.date].filter(Boolean).join(', ')}`);
-if (certs.length) add('## Certifications', ...certs);
 
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, md.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n');
-console.log(`wrote ${path.relative(process.cwd(), out)} (${md.length} blocks)`);
+console.log(`wrote ${out}`);

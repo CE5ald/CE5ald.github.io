@@ -1,0 +1,69 @@
+{
+  "handle": "CE5ald",
+  "title": "Telecom & Networks Engineer",
+  "areas": [
+    {
+      "id": "telecom",
+      "name": "Telecom",
+      "blurb": "Signals, radio and the systems that carry voice and data.",
+      "projects": []
+    },
+    {
+      "id": "networks",
+      "name": "Networks",
+      "blurb": "How data finds its way: design, configuration and troubleshooting.",
+      "projects": []
+    },
+    {
+      "id": "ai",
+      "name": "AI",
+      "blurb": "Software that listens, learns and adapts to the machine it runs on.",
+      "projects": [
+        {
+          "id": "companion-deck",
+          "name": "Companion Deck",
+          "year": "2026",
+          "summary": "Turns an Android tablet into a touch control surface for a Windows PC: now-playing with artwork, a per-app volume mixer, live temperatures and frame rate, a game and app launcher, a soundboard, and calendars.",
+          "details": [
+            "Detects what each PC and tablet can do and shows only that, so the same app works across laptops, desktops and tablets instead of being built around one machine.",
+            "Real frame rates in any game on any graphics card, read from Windows' own event tracing, with CPU temperature and fans from the sensor chips.",
+            "A .NET 8 agent on the PC talks to a thin Kotlin shell around a web interface on the tablet, over the USB cable with a Wi-Fi fallback.",
+            "One installer for Windows that includes everything it needs, and a signed Android app. It runs on Android 5 and newer, down to a 1 GB tablet.",
+            "Built with the help of AI, working under my direction. I made the decisions, tested it on real hardware, and am responsible for the result."
+          ],
+          "tags": ["Android", "Windows", "Audio", "Systems"],
+          "stack": ["C# / .NET 8", "Kotlin", "JavaScript", "WASAPI", "Windows ETW", "adb"],
+          "repo": "https://github.com/CE5ald/companion-deck",
+          "download": "https://github.com/CE5ald/companion-deck/releases/latest",
+          "readmeImage": "https://raw.githubusercontent.com/CE5ald/companion-deck/main/docs/images/home.png",
+          "images": [
+            { "src": "assets/companion-deck/home.jpg", "full": "assets/companion-deck/home-full.jpg", "thumb": "assets/companion-deck/home-thumb.jpg",
+              "caption": "Home: now playing, system gauges and the audio mixer at a glance",
+              "alt": "The home screen with now playing, CPU, GPU and RAM dials, and the audio mixer." },
+            { "src": "assets/companion-deck/performance.jpg", "full": "assets/companion-deck/performance-full.jpg", "thumb": "assets/companion-deck/performance-thumb.jpg",
+              "caption": "Performance: live frame rate, temperatures, fans and history",
+              "alt": "The performance page with a frame rate counter, CPU and GPU dials, fan speeds and a history graph." },
+            { "src": "assets/companion-deck/media.jpg", "full": "assets/companion-deck/media-full.jpg", "thumb": "assets/companion-deck/media-thumb.jpg",
+              "caption": "Media: a full player with artwork, seek and one-tap sources",
+              "alt": "The media page with a large player, artwork, a seek bar and music sources." },
+            { "src": "assets/companion-deck/soundboard.jpg", "full": "assets/companion-deck/soundboard-full.jpg", "thumb": "assets/companion-deck/soundboard-thumb.jpg",
+              "caption": "Soundboard: clips routed to speakers, microphone or both",
+              "alt": "The soundboard with coloured pads and routing options." },
+            { "src": "assets/companion-deck/deck.jpg", "full": "assets/companion-deck/deck-full.jpg", "thumb": "assets/companion-deck/deck-thumb.jpg",
+              "caption": "Deck: tiles that change by themselves with the program in front",
+              "alt": "A grid of tiles that switched to a gaming profile." },
+            { "src": "assets/companion-deck/calendars.jpg", "full": "assets/companion-deck/calendars-full.jpg", "thumb": "assets/companion-deck/calendars-thumb.jpg",
+              "caption": "Calendars: paste a private link once and it keeps itself up to date",
+              "alt": "The clock page with events and a list of subscribed calendars." },
+            { "src": "assets/companion-deck/hold-to-confirm.jpg", "full": "assets/companion-deck/hold-to-confirm-full.jpg", "thumb": "assets/companion-deck/hold-to-confirm-thumb.jpg",
+              "caption": "Hold to confirm: progress shown away from the finger",
+              "alt": "A running-programs list with a panel showing a ring filling while a button is held." },
+            { "src": "assets/companion-deck/launcher.jpg", "full": "assets/companion-deck/launcher-full.jpg", "thumb": "assets/companion-deck/launcher-thumb.jpg",
+              "caption": "Launcher: your own games and apps, ordered by what you use",
+              "alt": "The launcher with game cover art and applications." }
+          ]
+        }
+      ]
+    }
+  ]
+}
